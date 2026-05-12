@@ -1,0 +1,46 @@
+.git
+.gitignore
+Dockerfile
+**/.git
+**/.gitignore
+**/.DS_Store
+**/Thumbs.db
+**/.idea
+**/.vscode
+*.iml
+
+# Maven build artifacts
+**/target
+**/target/**
+**/*.jar
+**/*.war
+**/*.ear
+**/*.zip
+**/*.tar.gz
+**/*.rar
+**/*.log
+
+# Maven wrapper and local cache
+.mvn
+**/.mvn
+**/.mvn/**
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.versionsBackup
+**/release.properties
+**/dependency-reduced-pom.xml
+**/dependency-reduced-pom.properties
+**/.m2repository
+
+# IDE and editor files
+**/*~
+**/*.swp
+**/*.tmp
+**/*.bak
+**/__pycache__
+**/.classpath
+**/.project
+
+# Batch directories local test
+batch/input/
+batch/archive/
