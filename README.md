@@ -1,41 +1,49 @@
-﻿# Batch Remboursement
+# Projet Batch Remboursement
 
-## Objectif
+**Auteurs :** Alexandre COUTANCE, Quentin AUBERT
+**Formation :** Élèves-ingénieurs DE2, Télécom Saint-Étienne
 
-Projet Java/Maven qui lit des fichiers CSV de type `users_YYYYMMDDHHmmss.csv`, insère ou met à jour les données en base PostgreSQL et archive les fichiers traités.
+---
 
-## Contenu du projet
+## 1. Objectif du Projet
 
-- `remboursement-batch/pom.xml` : configuration Maven et dépendances
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/Main.java` : point d'entrée
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/service/BatchProcessor.java` : traitement des fichiers
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/service/CsvParserService.java` : parsing CSV et extraction du timestamp
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/dao/RemboursementDao.java` : persistence en base
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/config/AppProperties.java` : lecture des propriétés
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/config/DatabaseConfig.java` : connexion JDBC
-- `remboursement-batch/src/main/java/com/aubert_coutance/batch/model/Remboursement.java` : modèle métier
-- `remboursement-batch/src/main/resources/database.properties` : paramètres de configuration
-- `remboursement-batch/src/test/java` : tests unitaires
+Ce projet consiste en l'élaboration d'un programme batch Java/Maven automatisant l'intégration de données de santé. Le système est conçu pour :
 
-## Prérequis
+* Surveiller un répertoire source à la recherche de fichiers CSV horodatés (`users_YYYYMMDDHHmmss.csv`).
+* Extraire et valider les informations de remboursement.
+* Réaliser une opération d'"Upsert" (insertion ou mise à jour) dans une base de données PostgreSQL en fonction de l'identifiant de remboursement.
+* Déplacer les fichiers traités vers un répertoire d'archivage sécurisé.
 
-- Java 17
-- Maven
-- PostgreSQL
+## 2. Structure de l'Application
 
-## Configuration
+Le projet est organisé selon une architecture modulaire pour séparer les responsabilités :
 
-Modifier le fichier `remboursement-batch/src/main/resources/database.properties` avec les paramètres de connexion et les répertoires :
+* `com.aubert_coutance.batch.Main` : Orchestrateur et point d'entrée.
+* `service.BatchProcessor` : Gère le cycle de vie du traitement (lecture dossier, archivage).
+* `service.CsvParserService` : Analyse les fichiers CSV à l'aide d'expressions régulières pour la validation des noms et des dates.
+* `dao.RemboursementDao` : Gère la persistance avec des transactions SQL optimisées (clauses `ON CONFLICT` et traitements par lots/batch).
+* `config` : Classes dédiées au chargement des propriétés système et à la configuration JDBC.
 
-```properties
-db.url=jdbc:postgresql://localhost:5432/postgres
-db.user=postgres
-db.password=monmotdepasse
-batch.dossier.source=C:/batch/input/
-batch.dossier.archive=C:/batch/archive/
-```
+## 3. Choix Techniques
 
-## Schéma de base de données
+L'application repose sur les standards industriels suivants :
+
+* **Java 17 (LTS)** : Pour les performances et la modernité des API (Time, NIO.2).
+* **Maven** : Pour la gestion rigoureuse des dépendances et du cycle de build.
+* **OpenCSV** : Bibliothèque robuste pour le parsing de fichiers plats.
+* **PostgreSQL Driver** : Pour une interaction directe et performante avec la base relationnelle.
+* **JUnit 5** : Validation de la logique métier par des tests unitaires automatisés.
+
+## 4. Configuration et Déploiement
+
+### Prérequis
+
+* Installation de Java 17 et Maven.
+* Accès à une instance PostgreSQL.
+
+### Schéma de Base de Données
+
+Le script suivant permet d'initialiser la table nécessaire :
 
 ```sql
 CREATE TABLE remboursement (
@@ -50,49 +58,39 @@ CREATE TABLE remboursement (
   montant_remboursement DECIMAL(10, 2) NOT NULL,
   timestamp_fichier TIMESTAMP NOT NULL
 );
+
 ```
 
-## Format du fichier CSV
+### Paramétrage
 
-Nom du fichier : `users_YYYYMMDDHHmmss.csv`
+Le fichier `src/main/resources/database.properties` doit être ajusté selon votre environnement :
 
-Colonnes attendues dans l'ordre :
+```properties
+db.url=jdbc:postgresql://localhost:5432/postgres
+db.user=postgres
+db.password=monmotdepasse
+batch.dossier.source=C:/batch/input/
+batch.dossier.archive=C:/batch/archive/
 
-`Numero_Securite_Sociale,Nom,Prenom,Date_Naissance,Numero_Telephone,E_Mail,ID_Remboursement,Code_Soin,Montant_Remboursement`
-
-Exemple d’enregistrement :
-
-```csv
-12345678901234,Dupont,Jean,1990-05-15,0612345678,jean@example.com,REM001,SOIN001,150.50
 ```
 
-## Lancement
+## 5. Utilisation
+
+### Compilation et Lancement
+
+Utilisez les commandes Maven standard à la racine du projet :
 
 ```bash
-cd remboursement-batch
 mvn clean package
 java -jar target/remboursement-batch-1.0-SNAPSHOT.jar
+
 ```
 
-## Fonctionnement du batch
+### Exécution des Tests
 
-- Recherche des fichiers `users_*.csv` dans le répertoire source
-- Lecture et validation des lignes CSV
-- Extraction du timestamp depuis le nom du fichier
-- Insertion ou mise à jour des enregistrements en base PostgreSQL
-- Déplacement du fichier vers le répertoire d’archive
-
-## Tests
+Pour lancer la suite de tests unitaires :
 
 ```bash
-cd remboursement-batch
 mvn test
+
 ```
-
-## Choix techniques
-
-- Java 17
-- Maven
-- OpenCSV pour le parsing CSV
-- JDBC PostgreSQL
-- JUnit 5 pour les tests unitaires
