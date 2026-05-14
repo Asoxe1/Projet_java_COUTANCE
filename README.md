@@ -1,23 +1,21 @@
 ﻿# Batch Remboursement
 
-**Date : 12/05/2025**
-
 ## Objectif
 
-Application Java/Maven qui scrute un dossier pour les fichiers `users_YYYYMMDDHHmmss.csv`, parse les lignes CSV, applique un upsert PostgreSQL en fonction de `ID_Remboursement`, puis archive les fichiers traités.
+Projet Java/Maven qui lit des fichiers CSV de type `users_YYYYMMDDHHmmss.csv`, insère ou met à jour les données en base PostgreSQL et archive les fichiers traités.
 
-## Structure minimale
+## Contenu du projet
 
-- `remboursement-batch/pom.xml` : configuration Maven
-- `src/main/java/.../Main.java` : point d'entrée
-- `src/main/java/.../service/BatchProcessor.java` : orchestration du batch
-- `src/main/java/.../service/CsvParserService.java` : parsing CSV et extraction du timestamp
-- `src/main/java/.../dao/RemboursementDao.java` : persistance PostgreSQL
-- `src/main/java/.../config/AppProperties.java` : lecture des propriétés
-- `src/main/java/.../config/DatabaseConfig.java` : création de la connexion
-- `src/main/java/.../model/Remboursement.java` : modèle métier
-- `src/main/resources/database.properties` : configuration externe
-- `src/test/java/...` : tests unitaires
+- `remboursement-batch/pom.xml` : configuration Maven et dépendances
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/Main.java` : point d'entrée
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/service/BatchProcessor.java` : traitement des fichiers
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/service/CsvParserService.java` : parsing CSV et extraction du timestamp
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/dao/RemboursementDao.java` : persistence en base
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/config/AppProperties.java` : lecture des propriétés
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/config/DatabaseConfig.java` : connexion JDBC
+- `remboursement-batch/src/main/java/com/aubert_coutance/batch/model/Remboursement.java` : modèle métier
+- `remboursement-batch/src/main/resources/database.properties` : paramètres de configuration
+- `remboursement-batch/src/test/java` : tests unitaires
 
 ## Prérequis
 
@@ -27,7 +25,7 @@ Application Java/Maven qui scrute un dossier pour les fichiers `users_YYYYMMDDHH
 
 ## Configuration
 
-Modifier `src/main/resources/database.properties` :
+Modifier le fichier `remboursement-batch/src/main/resources/database.properties` avec les paramètres de connexion et les répertoires :
 
 ```properties
 db.url=jdbc:postgresql://localhost:5432/postgres
@@ -54,21 +52,21 @@ CREATE TABLE remboursement (
 );
 ```
 
-## Format CSV
+## Format du fichier CSV
 
 Nom du fichier : `users_YYYYMMDDHHmmss.csv`
 
-Colonnes dans l'ordre :
+Colonnes attendues dans l'ordre :
 
 `Numero_Securite_Sociale,Nom,Prenom,Date_Naissance,Numero_Telephone,E_Mail,ID_Remboursement,Code_Soin,Montant_Remboursement`
 
-Exemple :
+Exemple d’enregistrement :
 
 ```csv
 12345678901234,Dupont,Jean,1990-05-15,0612345678,jean@example.com,REM001,SOIN001,150.50
 ```
 
-## Utilisation
+## Lancement
 
 ```bash
 cd remboursement-batch
@@ -76,30 +74,25 @@ mvn clean package
 java -jar target/remboursement-batch-1.0-SNAPSHOT.jar
 ```
 
-## Fonctionnement
+## Fonctionnement du batch
 
 - Recherche des fichiers `users_*.csv` dans le répertoire source
-- Parsing CSV et validation des données
-- Extraction du timestamp à partir du nom de fichier
-- Upsert PostgreSQL sur `id_remboursement`
-- Déplacement du fichier vers le répertoire d'archive
+- Lecture et validation des lignes CSV
+- Extraction du timestamp depuis le nom du fichier
+- Insertion ou mise à jour des enregistrements en base PostgreSQL
+- Déplacement du fichier vers le répertoire d’archive
 
 ## Tests
 
 ```bash
+cd remboursement-batch
 mvn test
 ```
-
-Tests unitaires présents pour :
-- parsing CSV
-- lecture des propriétés
-- modèle métier
 
 ## Choix techniques
 
 - Java 17
 - Maven
-- OpenCSV pour le parsing
-- PostgreSQL JDBC
-- JUnit 5
-- UPSERT PostgreSQL (`ON CONFLICT`) pour gérer insert/update
+- OpenCSV pour le parsing CSV
+- JDBC PostgreSQL
+- JUnit 5 pour les tests unitaires
